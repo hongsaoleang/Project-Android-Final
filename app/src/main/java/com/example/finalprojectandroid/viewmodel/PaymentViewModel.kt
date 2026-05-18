@@ -25,7 +25,7 @@ class PaymentViewModel(private val repository: PaymentRepository = PaymentReposi
 
     private var pollingJob: Job? = null
 
-    fun startPayment(orderId: Int) {
+    fun startPayment(orderId: Long) {
         viewModelScope.launch {
             _isLoading.value = true
             pollingJob?.cancel()
@@ -44,12 +44,13 @@ class PaymentViewModel(private val repository: PaymentRepository = PaymentReposi
         }
     }
 
-    private fun startPolling(paymentId: Int) {
+    private fun startPolling(paymentId: Long) {
         pollingJob = viewModelScope.launch {
             while (_status.value !in listOf("PAID", "EXPIRED", "FAILED")) {
                 delay(5000)
                 try {
                     val response = repository.getStatus(paymentId)
+                    _payment.value = response
                     _status.value = response.status
                 } catch (e: Exception) {
                     _error.value = e.message ?: "Unable to refresh payment status"
