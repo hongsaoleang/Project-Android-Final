@@ -9,14 +9,13 @@ import com.example.finalprojectandroid.data.repository.OrderRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
 class CartViewModel(
     private val orderRepository: OrderRepository = OrderRepository()
 ) : ViewModel() {
     val cartItems = CartRepository.cartItems
-
-    private val _orderId = MutableStateFlow<Int?>(null)
-    val orderId = _orderId.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -26,19 +25,27 @@ class CartViewModel(
 
     fun checkout(onSuccess: (Int) -> Unit) {
         viewModelScope.launch {
+            _error.value = null
             _isLoading.value = true
             try {
-                val items = cartItems.value.map { OrderItemRequest(it.product.id, it.quantity) }
-                if (items.isEmpty()) {
+                val currentItems = cartItems.value
+                if (currentItems.isEmpty()) {
                     _error.value = "Your cart is empty"
                     return@launch
                 }
+
+                val items = currentItems.map { OrderItemRequest(it.product.id, it.quantity) }
                 val order = orderRepository.createOrder(CreateOrderRequest(items))
-                _error.value = null
+                
+                // Clear cart only after success
                 CartRepository.clearCart()
                 onSuccess(order.id)
+            } catch (e: HttpException) {
+                _error.value = "Server error: ${e.code()}. Check if your backend is running."
+            } catch (e: IOException) {
+                _error.value = "Network error. Make sure your local server (10.0.2.2) is online."
             } catch (e: Exception) {
-                _error.value = e.message ?: "Unable to create order"
+                _error.value = e.localizedMessage ?: "An unexpected error occurred"
             } finally {
                 _isLoading.value = false
             }

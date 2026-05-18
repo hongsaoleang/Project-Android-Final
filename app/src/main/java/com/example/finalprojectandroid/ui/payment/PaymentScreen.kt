@@ -3,15 +3,21 @@ package com.example.finalprojectandroid.ui.payment
 import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.finalprojectandroid.viewmodel.PaymentViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -42,54 +48,123 @@ fun PaymentScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Payment") },
+                title = { Text("Complete Payment", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (isLoading) {
-                CircularProgressIndicator()
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (error != null) {
+                // Professional Error State
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Default.Warning,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "Authentication Error",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "The server rejected your session (403). Please try again.",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Button(onClick = { viewModel.startPayment(orderId) }) {
+                        Text("Retry Payment")
+                    }
+                }
             } else {
                 payment?.let {
-                    Text("Order #${it.orderId}", style = MaterialTheme.typography.titleLarge)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    val qrBitmap = remember(it.qr) { generateQrCode(it.qr) }
-                    qrBitmap?.let { bitmap ->
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "KHQR Code",
-                            modifier = Modifier.size(250.dp)
-                        )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Total Amount", style = MaterialTheme.typography.labelMedium)
+                            Text("Order #$orderId", fontWeight = FontWeight.Bold)
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            // QR Code Styling
+                            Surface(
+                                modifier = Modifier
+                                    .size(260.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                color = androidx.compose.ui.graphics.Color.White,
+                                shadowElevation = 4.dp
+                            ) {
+                                val qrBitmap = remember(it.qr) { generateQrCode(it.qr) }
+                                qrBitmap?.let { bitmap ->
+                                    Image(
+                                        bitmap = bitmap.asImageBitmap(),
+                                        contentDescription = "Payment QR",
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            Text(
+                                "Scan with any Bakong app",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                     
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text("Status: $status", style = MaterialTheme.typography.headlineSmall, color = when(status) {
-                        "PAID" -> MaterialTheme.colorScheme.primary
-                        "FAILED" -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.secondary
-                    })
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    Text("Payment Status", style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = status,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = when(status) {
+                            "PAID" -> androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                            "FAILED" -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.primary
+                        }
+                    )
                     
                     if (status == "PENDING") {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Please scan the QR code to pay")
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                        )
                     }
-                } ?: error?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-                error?.let {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(it, color = MaterialTheme.colorScheme.error)
                 }
             }
         }

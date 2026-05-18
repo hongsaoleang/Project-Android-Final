@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.finalprojectandroid"
+    // Changed back to 36 because your dependencies (like Core-Ktx 1.18.0) 
+    // strictly require the Android 16 (Vanilla Ice Cream) SDK to compile.
     compileSdk = 36
 
     defaultConfig {
@@ -16,6 +18,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Optimization: Only package resources for the English language during development
+        resourceConfigurations += listOf("en")
     }
 
     buildTypes {
@@ -34,6 +39,25 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // Optimization: Skip unneeded metadata files during development
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+// Custom task to fix the "rm -fr" timeout error automatically
+tasks.register<Exec>("clearDeviceStudioCache") {
+    group = "other"
+    description = "Clears the temporary .studio folder on the connected device to fix deployment timeouts."
+    
+    val androidExtension = project.extensions.getByName("android") as com.android.build.gradle.BaseExtension
+    val adbPath = androidExtension.adbExecutable.absolutePath
+    
+    commandLine(adbPath, "shell", "rm", "-rf", "/data/local/tmp/.studio/")
+    isIgnoreExitValue = true
 }
 
 dependencies {
@@ -50,6 +74,8 @@ dependencies {
     // Retrofit & Gson
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
     
     // Coil for images
     implementation(libs.coil.compose)

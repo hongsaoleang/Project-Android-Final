@@ -1,30 +1,18 @@
 package com.example.finalprojectandroid.ui.main
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,7 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.finalprojectandroid.viewmodel.CartViewModel
 import com.example.finalprojectandroid.viewmodel.ProductViewModel
 
@@ -44,123 +36,121 @@ fun HomeDashboardScreen(
     onShopClick: () -> Unit
 ) {
     val products by productViewModel.products.collectAsState()
-    val cartItems by cartViewModel.cartItems.collectAsState()
-    val totalStock = products.sumOf { it.stock }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .verticalScroll(scrollState)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            color = Color.Transparent
+        // 1. Hero Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        )
-                    )
-                    .padding(24.dp)
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.primary
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Welcome back", color = MaterialTheme.colorScheme.onPrimary)
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        "Find the right products faster",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.headlineMedium
+                        "Summer\nCollection",
+                        fontSize = 38.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 44.sp,
+                        color = Color.White
                     )
-                    Text(
-                        "${products.size} products available with KHQR checkout ready.",
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f)
-                    )
-                    Button(onClick = onShopClick) {
-                        Icon(Icons.Default.ShoppingBag, contentDescription = null)
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text("Start Shopping")
+                    Spacer(Modifier.height(16.dp))
+                    Button(
+                        onClick = onShopClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Shop Now", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MetricCard(
-                title = "Products",
-                value = products.size.toString(),
-                icon = Icons.Default.Inventory2,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                title = "In Cart",
-                value = cartItems.sumOf { it.quantity }.toString(),
-                icon = Icons.Default.ShoppingBag,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MetricCard(
-                title = "Stock",
-                value = totalStock.toString(),
-                icon = Icons.Default.LocalShipping,
-                modifier = Modifier.weight(1f)
-            )
-            MetricCard(
-                title = "Payment",
-                value = "KHQR",
-                icon = Icons.Default.CreditCard,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Today", style = MaterialTheme.typography.titleLarge)
-                Text(
-                    "Your store is connected to the Spring Boot backend at 10.0.2.2:8080.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MetricCard(
-    title: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+        // 2. Featured Section
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.LocalFireDepartment, contentDescription = null, tint = Color(0xFFFF5722))
+                    Spacer(Modifier.width(8.dp))
+                    Text("New Arrivals", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                }
+                TextButton(onClick = onShopClick) {
+                    Text("See All")
+                    Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                }
             }
-            Text(value, style = MaterialTheme.typography.headlineSmall)
-            Text(title, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Spacer(Modifier.height(12.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(products.take(5)) { product ->
+                    Card(
+                        modifier = Modifier
+                            .width(160.dp)
+                            .clickable { onShopClick() },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                    ) {
+                        Column {
+                            AsyncImage(
+                                model = product.imageUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(120.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text(product.name, maxLines = 1, fontWeight = FontWeight.Bold)
+                                Text("$${product.price}", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleSmall)
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        // 3. Promotion Card
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(120.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            Row(
+                modifier = Modifier.padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Free Shipping", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text("On all orders over $50", style = MaterialTheme.typography.bodyMedium)
+                }
+                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(40.dp), tint = MaterialTheme.colorScheme.primary)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }

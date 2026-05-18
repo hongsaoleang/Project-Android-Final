@@ -31,7 +31,6 @@ import com.example.finalprojectandroid.ui.main.HomeDashboardScreen
 import com.example.finalprojectandroid.ui.main.PaymentSuccessScreen
 import com.example.finalprojectandroid.ui.main.SettingsScreen
 import com.example.finalprojectandroid.ui.payment.PaymentScreen
-import com.example.finalprojectandroid.ui.product.AddEditProductScreen
 import com.example.finalprojectandroid.ui.product.ProductDetailScreen
 import com.example.finalprojectandroid.ui.product.ProductListScreen
 import com.example.finalprojectandroid.ui.theme.FinalProjectAndroidTheme
@@ -62,7 +61,7 @@ private fun EcommerceApp() {
     val paymentViewModel: PaymentViewModel = viewModel()
 
     var screen by remember { mutableStateOf(AppScreen.Login) }
-    var selectedTab by remember { mutableStateOf(MainTab.Shop) }
+    var selectedTab by remember { mutableStateOf(MainTab.Home) }
     var selectedProductId by remember { mutableStateOf<Int?>(null) }
     var selectedOrderId by remember { mutableStateOf<Int?>(null) }
 
@@ -71,7 +70,7 @@ private fun EcommerceApp() {
             viewModel = authViewModel,
             onNavigateSignUp = { screen = AppScreen.SignUp },
             onNavigateHome = {
-                selectedTab = MainTab.Shop
+                selectedTab = MainTab.Home
                 screen = AppScreen.Main
             }
         )
@@ -80,7 +79,7 @@ private fun EcommerceApp() {
             viewModel = authViewModel,
             onNavigateLogin = { screen = AppScreen.Login },
             onNavigateHome = {
-                selectedTab = MainTab.Shop
+                selectedTab = MainTab.Home
                 screen = AppScreen.Main
             }
         )
@@ -94,7 +93,6 @@ private fun EcommerceApp() {
                 selectedProductId = id
                 screen = AppScreen.ProductDetail
             },
-            onAddProduct = { screen = AppScreen.AddProduct },
             onCheckout = { screen = AppScreen.Checkout },
             onLogout = { screen = AppScreen.Login }
         )
@@ -103,27 +101,7 @@ private fun EcommerceApp() {
             ProductDetailScreen(
                 productId = id,
                 viewModel = productViewModel,
-                onBack = { screen = AppScreen.Main },
-                onEdit = {
-                    selectedProductId = it
-                    screen = AppScreen.EditProduct
-                },
-                onDelete = { screen = AppScreen.Main }
-            )
-        }
-
-        AppScreen.AddProduct -> AddEditProductScreen(
-            viewModel = productViewModel,
-            onBack = { screen = AppScreen.Main },
-            onSuccess = { screen = AppScreen.Main }
-        )
-
-        AppScreen.EditProduct -> selectedProductId?.let { id ->
-            AddEditProductScreen(
-                productId = id,
-                viewModel = productViewModel,
-                onBack = { screen = AppScreen.ProductDetail },
-                onSuccess = { screen = AppScreen.Main }
+                onBack = { screen = AppScreen.Main }
             )
         }
 
@@ -167,7 +145,6 @@ private fun MainShell(
     productViewModel: ProductViewModel,
     cartViewModel: CartViewModel,
     onProductClick: (Int) -> Unit,
-    onAddProduct: () -> Unit,
     onCheckout: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -210,7 +187,6 @@ private fun MainShell(
                 ProductListScreen(
                     viewModel = productViewModel,
                     onProductClick = onProductClick,
-                    onAddProductClick = onAddProduct,
                     onCartClick = { onTabSelected(MainTab.Cart) }
                 )
             }
@@ -236,8 +212,6 @@ private enum class AppScreen {
     SignUp,
     Main,
     ProductDetail,
-    AddProduct,
-    EditProduct,
     Checkout,
     Payment,
     Success
