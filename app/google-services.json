@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1049395883468",
+    "project_id": "final-android-cdda2",
+    "storage_bucket": "final-android-cdda2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1049395883468:android:c551ada6ff671c68890169",
+        "android_client_info": {
+          "package_name": "com.example.finalprojectandroid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCabPnHbwvfXotBiSpoB8v8nB4vU73_nE4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
