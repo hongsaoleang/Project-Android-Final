@@ -62,8 +62,8 @@ private fun EcommerceApp() {
 
     var screen by remember { mutableStateOf(AppScreen.Login) }
     var selectedTab by remember { mutableStateOf(MainTab.Home) }
-    var selectedProductId by remember { mutableStateOf<Int?>(null) }
-    var selectedOrderId by remember { mutableStateOf<Int?>(null) }
+    var selectedProductId by remember { mutableStateOf<Long?>(null) }
+    var selectedOrderId by remember { mutableStateOf<Long?>(null) }
 
     when (screen) {
         AppScreen.Login -> LoginScreen(
@@ -144,7 +144,7 @@ private fun MainShell(
     onTabSelected: (MainTab) -> Unit,
     productViewModel: ProductViewModel,
     cartViewModel: CartViewModel,
-    onProductClick: (Int) -> Unit,
+    onProductClick: (Long) -> Unit,
     onCheckout: () -> Unit,
     onLogout: () -> Unit
 ) {

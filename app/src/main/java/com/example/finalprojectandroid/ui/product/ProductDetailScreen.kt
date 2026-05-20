@@ -25,7 +25,7 @@ import com.example.finalprojectandroid.viewmodel.ProductViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
-    productId: Int,
+    productId: Long,
     viewModel: ProductViewModel,
     onBack: () -> Unit
 ) {
@@ -79,12 +79,13 @@ fun ProductDetailScreen(
                             modifier = Modifier
                                 .height(50.dp)
                                 .weight(1.5f),
+                            enabled = product.stock > 0,
                             shape = RoundedCornerShape(12.dp),
                             contentPadding = PaddingValues(horizontal = 24.dp)
                         ) {
                             Icon(Icons.Default.ShoppingCart, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Add to Cart", fontWeight = FontWeight.Bold)
+                            Text(if (product.stock > 0) "Add to Cart" else "Out of Stock", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -135,14 +136,14 @@ fun ProductDetailScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            color = if (product.stock > 0) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "In Stock: ${product.stock}",
+                                text = if (product.stock > 0) "In Stock: ${product.stock}" else "Out of Stock",
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary
+                                color = if (product.stock > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                             )
                         }
 

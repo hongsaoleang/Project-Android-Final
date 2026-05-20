@@ -9,8 +9,8 @@ class ProductRepository {
     private val api = RetrofitClient.productApi
 
     suspend fun getProducts() = api.getProducts()
-    suspend fun getProduct(id: Int) = api.getProductById(id)
+    suspend fun getProduct(id: Long) = api.getProductById(id)
     suspend fun createProduct(request: CreateProductRequest) = api.createProduct(request)
-    suspend fun updateProduct(id: Int, request: UpdateProductRequest) = api.updateProduct(id, request)
-    suspend fun deleteProduct(id: Int) = api.deleteProduct(id)
+    suspend fun updateProduct(id: Long, request: UpdateProductRequest) = api.updateProduct(id, request)
+    suspend fun deleteProduct(id: Long) = api.deleteProduct(id)
 }

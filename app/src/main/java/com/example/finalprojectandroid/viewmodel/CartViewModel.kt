@@ -23,7 +23,7 @@ class CartViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
-    fun checkout(onSuccess: (Int) -> Unit) {
+    fun checkout(onSuccess: (Long) -> Unit) {
         viewModelScope.launch {
             _error.value = null
             _isLoading.value = true
@@ -52,16 +52,16 @@ class CartViewModel(
         }
     }
 
-    fun removeFromCart(productId: Int) {
+    fun removeFromCart(productId: Long) {
         CartRepository.removeFromCart(productId)
     }
 
-    fun increaseQuantity(productId: Int) {
+    fun increaseQuantity(productId: Long) {
         val item = cartItems.value.firstOrNull { it.product.id == productId } ?: return
         CartRepository.updateQuantity(productId, item.quantity + 1)
     }
 
-    fun decreaseQuantity(productId: Int) {
+    fun decreaseQuantity(productId: Long) {
         val item = cartItems.value.firstOrNull { it.product.id == productId } ?: return
         CartRepository.updateQuantity(productId, item.quantity - 1)
     }

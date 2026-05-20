@@ -32,7 +32,7 @@ import com.example.finalprojectandroid.viewmodel.CartViewModel
 fun CheckoutScreen(
     viewModel: CartViewModel,
     onBack: () -> Unit,
-    onPaymentReady: (Int) -> Unit
+    onPaymentReady: (Long) -> Unit
 ) {
     val cartItems by viewModel.cartItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()

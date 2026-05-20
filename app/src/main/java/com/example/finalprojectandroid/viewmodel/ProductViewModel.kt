@@ -54,7 +54,7 @@ class ProductViewModel(private val repository: ProductRepository = ProductReposi
         }
     }
 
-    fun updateProduct(id: Int, request: UpdateProductRequest, onSuccess: () -> Unit) {
+    fun updateProduct(id: Long, request: UpdateProductRequest, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -70,7 +70,7 @@ class ProductViewModel(private val repository: ProductRepository = ProductReposi
         }
     }
 
-    fun deleteProduct(id: Int) {
+    fun deleteProduct(id: Long) {
         viewModelScope.launch {
             _isLoading.value = true
             try {

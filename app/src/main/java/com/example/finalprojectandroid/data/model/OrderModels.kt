@@ -1,5 +1,7 @@
 package com.example.finalprojectandroid.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class OrderItemRequest(
     val productId: Long,
     val quantity: Int
@@ -20,7 +22,7 @@ data class OrderItem(
 data class Order(
     val id: Long,
     val items: List<OrderItem>,
-    val totalPrice: Double,
+    @SerializedName("totalAmount") val totalPrice: Double,
     val status: String,
     val createdAt: String
 )

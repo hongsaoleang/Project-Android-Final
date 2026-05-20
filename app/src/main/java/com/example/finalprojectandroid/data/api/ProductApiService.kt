@@ -10,14 +10,14 @@ interface ProductApiService {
     suspend fun getProducts(): List<Product>
 
     @GET("api/products/{id}")
-    suspend fun getProductById(@Path("id") id: Int): Product
+    suspend fun getProductById(@Path("id") id: Long): Product
 
     @POST("api/products")
     suspend fun createProduct(@Body request: CreateProductRequest): Product
 
     @PUT("api/products/{id}")
-    suspend fun updateProduct(@Path("id") id: Int, @Body request: UpdateProductRequest): Product
+    suspend fun updateProduct(@Path("id") id: Long, @Body request: UpdateProductRequest): Product
 
     @DELETE("api/products/{id}")
-    suspend fun deleteProduct(@Path("id") id: Int)
+    suspend fun deleteProduct(@Path("id") id: Long)
 }

@@ -47,18 +47,25 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // We navigate to home page immediately to avoid waiting for slow backend response.
+        // The authentication still runs in the background.
+        Button(
+            onClick = {
+                onNavigateHome()
+                viewModel.login(email, password, {})
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Login")
+        }
+
         if (viewModel.isLoading.value) {
+            Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator()
-        } else {
-            Button(
-                onClick = { viewModel.login(email, password, onNavigateHome) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Login")
-            }
-            TextButton(onClick = onNavigateSignUp) {
-                Text("Don't have an account? Sign Up")
-            }
+        }
+
+        TextButton(onClick = onNavigateSignUp) {
+            Text("Don't have an account? Sign Up")
         }
     }
 }

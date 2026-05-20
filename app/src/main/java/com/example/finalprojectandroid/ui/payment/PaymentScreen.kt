@@ -7,6 +7,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,11 +23,14 @@ import androidx.compose.ui.unit.sp
 import com.example.finalprojectandroid.viewmodel.PaymentViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(
-    orderId: Int,
+    orderId: Long,
     viewModel: PaymentViewModel,
     onBack: () -> Unit,
     onSuccess: () -> Unit
@@ -39,6 +44,17 @@ fun PaymentScreen(
         viewModel.startPayment(orderId)
     }
 
+    // Fixed Polling Logic: Continuous loop while status is PENDING
+    LaunchedEffect(payment?.id) {
+        val currentPaymentId = payment?.id ?: return@LaunchedEffect
+        // This loop keeps running in the background until the status changes
+        while (status == "PENDING") {
+            delay(1500) // Reduced delay for faster response
+            viewModel.updatePaymentStatus(currentPaymentId)
+        }
+    }
+
+    // Navigation: Move to success screen as soon as status becomes PAID
     LaunchedEffect(status) {
         if (status == "PAID") {
             onSuccess()
@@ -51,7 +67,7 @@ fun PaymentScreen(
                 title = { Text("Complete Payment", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -66,7 +82,7 @@ fun PaymentScreen(
         ) {
             if (isLoading) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(strokeWidth = 4.dp, color = MaterialTheme.colorScheme.primary)
                 }
             } else if (error != null) {
                 // Professional Error State
@@ -76,36 +92,51 @@ fun PaymentScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Warning,
+                        imageVector = Icons.Default.Warning,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.error
                     )
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        text = "Authentication Error",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "The server rejected your session (403). Please try again.",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(24.dp))
-                    Button(onClick = { viewModel.startPayment(orderId) }) {
-                        Text("Retry Payment")
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Payment Failed",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                text = error ?: "Internal Server Error (500)",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(32.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) {
+                            Text("Back to Cart")
+                        }
+                        Button(onClick = { viewModel.startPayment(orderId) }, modifier = Modifier.weight(1f)) {
+                            Icon(Icons.Default.Refresh, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Retry")
+                        }
                     }
                 }
             } else {
                 payment?.let {
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                     ) {
                         Column(
-                            modifier = Modifier.padding(24.dp),
+                            modifier = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text("Total Amount", style = MaterialTheme.typography.labelMedium)
@@ -116,12 +147,21 @@ fun PaymentScreen(
                             // QR Code Styling
                             Surface(
                                 modifier = Modifier
-                                    .size(260.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
+                                    .size(240.dp)
+                                    .clip(RoundedCornerShape(16.dp)),
                                 color = androidx.compose.ui.graphics.Color.White,
-                                shadowElevation = 4.dp
+                                shadowElevation = 8.dp
                             ) {
-                                val qrBitmap = remember(it.qr) { generateQrCode(it.qr) }
+                                var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
+                                
+                                LaunchedEffect(it.qr) {
+                                    if (it.qr.isNotBlank()) {
+                                        withContext(Dispatchers.Default) {
+                                            qrBitmap = generateQrCode(it.qr)
+                                        }
+                                    }
+                                }
+
                                 qrBitmap?.let { bitmap ->
                                     Image(
                                         bitmap = bitmap.asImageBitmap(),
@@ -144,7 +184,7 @@ fun PaymentScreen(
                     
                     Spacer(modifier = Modifier.height(32.dp))
                     
-                    Text("Payment Status", style = MaterialTheme.typography.labelLarge)
+                    Text("Transaction Status", style = MaterialTheme.typography.labelLarge)
                     Text(
                         text = status,
                         style = MaterialTheme.typography.headlineMedium,
@@ -174,7 +214,8 @@ fun PaymentScreen(
 fun generateQrCode(text: String): Bitmap? {
     return try {
         val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 512, 512)
+        // Optimized size to 300x300 for faster generation
+        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 300, 300)
         val width = bitMatrix.width
         val height = bitMatrix.height
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)

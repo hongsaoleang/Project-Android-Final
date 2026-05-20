@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
@@ -29,7 +30,7 @@ import com.example.finalprojectandroid.viewmodel.ProductViewModel
 @Composable
 fun ProductListScreen(
     viewModel: ProductViewModel,
-    onProductClick: (Int) -> Unit,
+    onProductClick: (Long) -> Unit,
     onCartClick: () -> Unit
 ) {
     val products by viewModel.products.collectAsState()
@@ -92,6 +93,14 @@ fun ProductListScreen(
             if (isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
+                }
+            } else if (filteredProducts.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(48.dp))
+                        Spacer(Modifier.height(8.dp))
+                        Text("No products found", color = Color.Gray)
+                    }
                 }
             } else {
                 LazyVerticalGrid(

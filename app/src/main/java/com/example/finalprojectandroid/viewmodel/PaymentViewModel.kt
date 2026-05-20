@@ -1,5 +1,6 @@
 package com.example.finalprojectandroid.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finalprojectandroid.data.model.PaymentResponse
@@ -28,13 +29,18 @@ class PaymentViewModel(private val repository: PaymentRepository = PaymentReposi
     fun startPayment(orderId: Long) {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
             pollingJob?.cancel()
             try {
                 val response = repository.createPayment(orderId)
                 _payment.value = response
                 _status.value = response.status
                 _error.value = null
-                startPolling(response.id)
+                
+                // Automatically start polling in the background if PENDING
+                if (response.status == "PENDING") {
+                    startPolling(response.id)
+                }
             } catch (e: Exception) {
                 _status.value = "FAILED"
                 _error.value = e.message ?: "Unable to start KHQR payment"
@@ -45,16 +51,36 @@ class PaymentViewModel(private val repository: PaymentRepository = PaymentReposi
     }
 
     private fun startPolling(paymentId: Long) {
+        pollingJob?.cancel()
         pollingJob = viewModelScope.launch {
-            while (_status.value !in listOf("PAID", "EXPIRED", "FAILED")) {
-                delay(5000)
+            // Poll every 2 seconds quietly in the background
+            while (_status.value == "PENDING") {
+                delay(2000)
                 try {
-                    val response = repository.getStatus(paymentId)
+                    val response = repository.checkBakong(paymentId)
                     _payment.value = response
                     _status.value = response.status
                 } catch (e: Exception) {
-                    _error.value = e.message ?: "Unable to refresh payment status"
+                    Log.e("PaymentViewModel", "Polling refresh failed: ${e.message}")
                 }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        pollingJob?.cancel()
+    }
+
+    // Keep this for manual refresh if needed, but it won't trigger the main loading circle
+    fun updatePaymentStatus(paymentId: Long) {
+        viewModelScope.launch {
+            try {
+                val response = repository.checkBakong(paymentId)
+                _payment.value = response
+                _status.value = response.status
+            } catch (e: Exception) {
+                Log.e("PaymentViewModel", "Manual refresh failed: ${e.message}")
             }
         }
     }
