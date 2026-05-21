@@ -4,6 +4,7 @@ data class PaymentResponse(
     val id: Long,
     val orderId: Long,
     val qr: String,
+    val md5: String,
     val status: String,
     val expiredAt: String
 )

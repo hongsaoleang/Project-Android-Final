@@ -130,8 +130,8 @@ private fun EcommerceApp() {
         }
 
         AppScreen.Success -> PaymentSuccessScreen(
-            onContinueShopping = {
-                selectedTab = MainTab.Shop
+            onBackToHome = {
+                selectedTab = MainTab.Home
                 screen = AppScreen.Main
             }
         )
