@@ -9,40 +9,36 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+private val PremiumDarkColorScheme = darkColorScheme(
+    primary = PrimaryEmeraldDark,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = AccentGold,
+    background = BackgroundDark,
+    surface = SurfaceDark,
+    onPrimary = SurfaceDark
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFF7F9F8),
-    surface = Color(0xFFFFFFFF),
-    surfaceContainer = Color(0xFFEFF4F2),
-    onPrimary = Color.White
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val PremiumLightColorScheme = lightColorScheme(
+    primary = PrimaryEmerald,
+    secondary = PrimaryEmeraldVariant,
+    tertiary = AccentGold,
+    background = BackgroundSoft,
+    surface = SurfaceWhite,
+    onPrimary = SurfaceWhite,
+    surfaceVariant = SecondaryCloud,
+    error = ErrorRed
 )
 
 @Composable
 fun FinalProjectAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Set to false to maintain the premium brand identity
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -50,9 +46,17 @@ fun FinalProjectAndroidTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+        darkTheme -> PremiumDarkColorScheme
+        else -> PremiumLightColorScheme
+    }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+        }
     }
 
     MaterialTheme(
